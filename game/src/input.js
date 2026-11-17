@@ -1,53 +1,56 @@
-// Keyboard and pointer input. Held keys give a steering direction; one-shot presses (start or
-// restart, pause) are queued as bit flags and taken once by the loop, so a press between two
-// frames is never lost and never counted twice.
+// Palmera Bay — keyboard and mouse input.
+// One job: track held keys, edge-triggered presses, and the mouse position
+// in canvas coordinates. The game reads this, never the DOM directly.
 
-export const ACTION_CONFIRM = 1;
-export const ACTION_PAUSE = 2;
+export function createInput(canvas) {
+  const keys = new Set();
+  const pressed = new Set();
+  let mouseX = 0;
+  let mouseY = 0;
+  let mouseClicked = false;
+  let mouseDown = false;
 
-const LEFT = new Set(['ArrowLeft', 'KeyA']);
-const RIGHT = new Set(['ArrowRight', 'KeyD']);
-const CONFIRM = new Set(['Space', 'Enter']);
-const PAUSE = new Set(['KeyP', 'Escape']);
+  function keyName(e) {
+    return e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  }
 
-export function createInput(target) {
-  let left = false;
-  let right = false;
-  let actions = 0;
+  window.addEventListener('keydown', (e) => {
+    const k = keyName(e);
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+    if (!keys.has(k)) pressed.add(k);
+    keys.add(k);
+  });
+  window.addEventListener('keyup', (e) => keys.delete(keyName(e)));
+  window.addEventListener('blur', () => keys.clear());
 
-  window.addEventListener('keydown', (event) => {
-    if (LEFT.has(event.code)) left = true;
-    else if (RIGHT.has(event.code)) right = true;
-    else if (CONFIRM.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_CONFIRM;
-    } else if (PAUSE.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_PAUSE;
-    } else return;
-    event.preventDefault();
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = ((e.clientX - r.left) / r.width) * canvas.width;
+    mouseY = ((e.clientY - r.top) / r.height) * canvas.height;
   });
-  window.addEventListener('keyup', (event) => {
-    if (LEFT.has(event.code)) left = false;
-    else if (RIGHT.has(event.code)) right = false;
+  canvas.addEventListener('mousedown', (e) => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = ((e.clientX - r.left) / r.width) * canvas.width;
+    mouseY = ((e.clientY - r.top) / r.height) * canvas.height;
+    mouseDown = true;
+    mouseClicked = true;
+    e.preventDefault();
   });
-  // A key released while the tab is hidden never sends keyup: let go of everything on blur.
-  window.addEventListener('blur', () => {
-    left = false;
-    right = false;
-  });
-  target.addEventListener('pointerdown', () => {
-    actions |= ACTION_CONFIRM;
-  });
+  window.addEventListener('mouseup', () => { mouseDown = false; });
 
   return {
-    /** -1 for left, 1 for right, 0 for neither or both. */
-    direction() {
-      return (right ? 1 : 0) - (left ? 1 : 0);
+    down(k) { return keys.has(k); },
+    // True once per physical press; consumed at end of frame by the game.
+    wasPressed(k) { return pressed.has(k); },
+    axis() {
+      let x = 0; let y = 0;
+      if (keys.has('a') || keys.has('ArrowLeft')) x -= 1;
+      if (keys.has('d') || keys.has('ArrowRight')) x += 1;
+      if (keys.has('w') || keys.has('ArrowUp')) y -= 1;
+      if (keys.has('s') || keys.has('ArrowDown')) y += 1;
+      return { x, y };
     },
-    /** The one-shot presses since the last call, as ACTION_* flags. */
-    takeActions() {
-      const taken = actions;
-      actions = 0;
-      return taken;
-    },
+    mouse() { return { x: mouseX, y: mouseY, clicked: mouseClicked, down: mouseDown }; },
+    endFrame() { pressed.clear(); mouseClicked = false; },
   };
 }
