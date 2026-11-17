@@ -1,7 +1,11 @@
 # Palmera Bay — an open-world crime game (gta6-01 entry)
 
+[![make.fun · gta6-01](https://make.fun/badge/gta6-01.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![rank](https://make.fun/badge/gta6-01/adhityanaufal26/gta6-01-v2/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![reward](https://make.fun/badge/gta6-01/adhityanaufal26/gta6-01-v2/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+
 A complete open-world crime game, built from scratch
-for make.fun's open-world bounty. Everything is original: the city of Palmera
+for [make.fun's "Make GTA 6" bounty](https://make.fun/bounty/gta6-01) ($1,666 in USDC). Everything is original: the city of Palmera
 Bay, the characters, the vehicles, the story, the art and the sound. No
 names, characters, maps, music or assets from any commercial game.
 
